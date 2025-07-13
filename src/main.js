@@ -1,7 +1,7 @@
-import { app, BrowserWindow, Tray, Menu } from "electron";
+import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
-
+import TimerTray from "./timerTray";
 if (started) {
   app.quit();
 }
@@ -28,42 +28,19 @@ const createWindow = () => {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
     );
   }
+
+  mainWindow.on("blur", () => {
+    mainWindow.hide();
+  });
 };
 
 const createTray = () => {
   const iconPath = path.join(__dirname, "/icon.png");
-  tray = new Tray(iconPath);
-  tray.on("click", (event, bounds) => {
-    const { x, y, width: trayWidth, height: trayHeight } = bounds;
-    const windowBounds = mainWindow.getBounds();
-
-    const align = "left";
-
-    let windowX;
-    if (align === "left") {
-      windowX = x;
-    } else if (align === "right") {
-      windowX = x + trayWidth - windowBounds.width;
-    }
-
-    const windowY = y + trayHeight;
-
-    if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      mainWindow.setBounds({
-        x: windowX,
-        y: windowY,
-        width: windowBounds.width,
-        height: windowBounds.height,
-      });
-      mainWindow.show();
-      mainWindow.focus();
-    }
-  });
+  tray = new TimerTray(iconPath, mainWindow);
 };
 
 app.whenReady().then(() => {
+  app.dock.hide();
   createWindow();
   createTray();
 
